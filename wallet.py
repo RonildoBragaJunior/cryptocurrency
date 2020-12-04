@@ -31,15 +31,15 @@ def get_utxns():
 def move_utxn():
     json_received = request.get_json()
     address, amount = json_received["address"], json_received["amount"]
-    new_txn = wallet.calculate_transfer(address, amount)
+    new_utxn = wallet.calculate_transfer(address, amount)
 
     response = requests.get("http://localhost:8000/get_nodes")
     if response.status_code == 200:
         registered_nodes = response.json()["nodes"]
         for node in registered_nodes:
             requests.post(
-                node + "/add_transaction",
-                data=json.dumps(new_txn.__dict__),
+                node + "/add_utxn",
+                data=json.dumps(new_utxn.__dict__),
                 headers=headers
             )
 

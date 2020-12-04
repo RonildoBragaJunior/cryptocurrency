@@ -9,17 +9,17 @@ headers = {"Content-Type": "application/json"}
 
 
 class Node:
-    def __init__(self, node_address=str(uuid4()), reward_address=str(uuid4()), unconfirmed_txn=[], processing_txn=[], mined_txn=[]):
+    def __init__(self, node_address=str(uuid4()), reward_address=str(uuid4()), utxns=[], processing_txn=[], mined_txn=[]):
         self.node_address = node_address
         self.reward_address = reward_address
-        self.unconfirmed_txn = unconfirmed_txn
+        self.utxns = utxns
         self.processing_txn = processing_txn
         self.mined_txn = mined_txn
         self.blockchain = Blockchain()
         self.network_nodes = []
 
-    def add_unconfirmed_txn(self, transaction):
-        self.unconfirmed_txn.append(transaction)
+    def add_utxn(self, transaction):
+        self.utxns.append(transaction)
 
         # announce transaction on the network
         for node_address in self.network_nodes:
@@ -28,7 +28,7 @@ class Node:
                           headers=headers)
 
     def mine_transactions(self):
-        self.processing_txn = self.unconfirmed_txn[0:5].copy()
+        self.processing_txn = self.utxns[0:5].copy()
         new_block = Block(prev_hash=self.blockchain.chain[-1].txn_hash, transactions=self.processing_txn)
         new_block.calculate()
 

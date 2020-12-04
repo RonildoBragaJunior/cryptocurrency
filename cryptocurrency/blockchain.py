@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from hashlib import sha256
 
@@ -19,7 +20,7 @@ class Transaction:
 
 class Block:
 
-    def __init__(self, prev_hash, transactions=[], difficulty=4, timestamp=datetime.now()):
+    def __init__(self, prev_hash, transactions=[], difficulty=4, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
         self.difficulty = difficulty
         self.proof = 0
         self.hash = None
@@ -40,6 +41,16 @@ class Block:
         while not self.hash.startswith('0' * self.difficulty):
             self.proof += 1
             self.hash = self.create_hash()
+
+    def to_json(self):
+        return{
+            "difficulty": self.difficulty,
+            "proof": self.proof,
+            "hash": self.hash,
+            "prev_hash": self.prev_hash,
+            "timestamp": self.timestamp,
+            "transactions": self.transactions
+        }
 
 
 class Blockchain:
@@ -62,3 +73,9 @@ class Blockchain:
             if block.proof != block.create_hash():
                 return False
         return True
+
+    def to_json(self):
+        return{
+            "length": len(self.chain),
+            "chain": [block.to_json() for block in self.chain]
+        }

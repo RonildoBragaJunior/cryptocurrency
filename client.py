@@ -1,11 +1,10 @@
 import json
 
 import requests
-from flask import request, Flask
+from flask import request, Flask, jsonify
 
 from cryptocurrency.blockchain import Transaction
 from cryptocurrency.node import Node
-
 
 headers = {"Content-Type": "application/json"}
 app = Flask(__name__)
@@ -35,13 +34,19 @@ def add_node():
     return "node registered", 200
 
 
-@app.route("/add_transaction", methods=["POST"])
-def add_transaction():
+@app.route("/add_utxn", methods=["POST"])
+def add_utxn():
     data = request.get_json()
     transaction = Transaction(**data)
 
-    local_node.add_unconfirmed_txn(transaction)
+    local_node.add_utxn(transaction)
     return "transaction received", 200
+
+
+@app.route("/get_utxns", methods=["GET"])
+def get_utxns():
+    data = [utxn.__dict__ for utxn in local_node.utxns]
+    return jsonify(data), 200
 
 
 @app.route("/mine_transactions", methods=["GET"])
@@ -52,8 +57,8 @@ def mine_transactions():
 
 @app.route("/get_blockchain", methods=["GET"])
 def get_blockchain():
-    response = local_node.blockchain.to_json()
-    return response, 200
+    chain = jsonify(local_node.blockchain.to_json())
+    return chain, 200
 
 
 @app.route("/check_network_blockchain", methods=["GET"])
