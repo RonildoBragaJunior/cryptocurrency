@@ -1,5 +1,4 @@
 import json
-
 import requests
 from flask import request, Flask, jsonify
 
@@ -16,9 +15,19 @@ nodes = []
 def add_utxn():
     json_request = request.get_json()
     utxn = Transaction(address=wallet.address, amount=json_request["amount"]).create_hash()
+    wallet.sign_txn(utxn)
     wallet.utxns.append(utxn)
-
     return "ok", 200
+
+
+@app.route("/verify_signature", methods=["POST"])
+def verify_signature():
+    json_request = request.get_json()
+    message = json_request["message"]
+    if wallet.verify_signature(message):
+        return "true", 200
+    else:
+        return "false", 200
 
 
 @app.route("/get_utxns", methods=["GET"])
@@ -31,7 +40,7 @@ def get_utxns():
 def move_utxn():
     json_received = request.get_json()
     address, amount = json_received["address"], json_received["amount"]
-    new_utxn = wallet.calculate_transfer(address, amount)
+    new_utxn = wallet.transfer_utxn(address, amount)
 
     response = requests.get("http://localhost:8000/get_nodes")
     if response.status_code == 200:

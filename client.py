@@ -49,9 +49,9 @@ def get_utxns():
     return jsonify(data), 200
 
 
-@app.route("/mine_transactions", methods=["GET"])
-def mine_transactions():
-    local_node.mine_transactions()
+@app.route("/mine_utxns", methods=["GET"])
+def mine_utxns():
+    local_node.mine_utxns()
     return "New block mined", 200
 
 

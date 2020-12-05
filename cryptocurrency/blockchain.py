@@ -1,17 +1,17 @@
-import json
 from datetime import datetime
 from hashlib import sha256
 
 
 class Transaction:
 
-    def __init__(self, txn_hash=None, prev_hash=None, address=None, amount=0, fee=0, txn_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+    def __init__(self, txn_hash=None, prev_hash=None, address=None, amount=0, fee=0, txn_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), signature=None):
         self.txn_hash = txn_hash
         self.prev_hash = prev_hash
         self.address = address
         self.amount = amount
         self.fee = fee
         self.txn_time = txn_time
+        self.signature = signature
 
     def create_hash(self):
         self.txn_hash = sha256(str(self.__dict__).encode()).hexdigest()

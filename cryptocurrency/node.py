@@ -27,7 +27,7 @@ class Node:
                           data=transaction.to_json(),
                           headers=headers)
 
-    def mine_transactions(self):
+    def mine_utxns(self):
         self.processing_txn = self.utxns[0:5].copy()
         new_block = Block(prev_hash=self.blockchain.chain[-1].txn_hash, transactions=self.processing_txn)
         new_block.calculate()
