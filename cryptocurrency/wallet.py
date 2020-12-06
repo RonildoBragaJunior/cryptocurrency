@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from cryptography.exceptions import InvalidSignature
@@ -27,11 +26,9 @@ class Wallet:
             balance += utxn.amount
         return balance
 
-    def sign_txn(self, txn):
-        message = json.dumps(txn.__dict__)
-        b_message = bytes(message, 'utf-8')
+    def sign_txn(self, b_message):
         signature = self.priv_key.sign(b_message, self.signature_algorithm)
-        txn.signature = signature.hex()
+        return signature.hex()
 
     def verify_signature(self, message):
         try:
@@ -41,25 +38,29 @@ class Wallet:
             return False
 
     def transfer_utxn(self, address, amount):
-        new_utxn, rest_utxn = None, None
         if self.balance > amount:
             input_utxn_balance = 0
-            input_utxn = []
+            input_utxns = []
+            new_utxn = None
             for utxn in self.utxns:
-                input_utxn.append(utxn)
+                input_utxns.append(utxn)
                 input_utxn_balance += utxn.amount
 
                 if input_utxn_balance >= amount:
-                    new_utxn = Transaction(prev_hash=[utxn.txn_hash for utxn in input_utxn],
+                    new_utxn = Transaction(prev_hash=[utxn.txn_hash for utxn in input_utxns],
                                            address=address,
                                            amount=amount).create_hash()
+                    new_utxn.signature = self.sign_txn(new_utxn.to_bytes())
 
                 if input_utxn_balance > amount:
-                    self.utxns.append(Transaction(prev_hash=[utxn.txn_hash],
-                                                  address=self.address,
-                                                  amount=input_utxn_balance-amount).create_hash())
-
-                if new_utxn or rest_utxn:
+                    rest_utxn = Transaction(prev_hash=[utxn.txn_hash],
+                                            address=self.address,
+                                            amount=input_utxn_balance-amount).create_hash()
+                    rest_utxn.signature = self.sign_txn(rest_utxn.to_bytes())
+                    self.utxns.append(rest_utxn)
+                if new_utxn:
                     break
+            for input_utxn in input_utxns:
+                self.utxns.remove(input_utxn)
 
         return new_utxn

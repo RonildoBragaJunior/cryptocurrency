@@ -1,37 +1,39 @@
 import json
-
+import time
 import requests
 from flask import request, Flask, jsonify
-
+import threading
+import tools
 from cryptocurrency.blockchain import Transaction
 from cryptocurrency.node import Node
 
-headers = {"Content-Type": "application/json"}
 app = Flask(__name__)
 local_node = Node()
 
 
+def mine():
+    while True:
+        print("mining")
+        local_node.mine_utxns()
+        time.sleep(10)
+
+
 @app.route("/register", methods=["GET"])
 def register():
-    local_address = {"address": request.url_root}
-    response = requests.post("http://localhost:8000/add_node",
-                             data=json.dumps(local_address),
-                             headers=headers)
-
-    if response.status_code == 200:
-        registered_nodes = response.json()["nodes"]
-        for registered_node in registered_nodes:
-            if registered_node != local_address["address"]:
-                local_node.network_nodes.append(registered_node)
-        return "registered", 200
+    data = {"address": local_node.node_address, "url": request.url_root}
+    requests.post(tools.lighthouse + "add_node",
+                  data=json.dumps(data),
+                  headers=tools.HEADERS)
 
 
-@app.route("/add_node", methods=["POST"])
-def add_node():
-    json_request = request.get_json()
-    node_address = json_request["address"]
-    local_node.network_nodes.append(node_address)
-    return "node registered", 200
+@app.route("/update_network", methods=["GET"])
+def update_network():
+    response = requests.get(tools.lighthouse + "get_nodes")
+    global_network_nodes = response.json()
+    for global_network_node in global_network_nodes:
+        if not tools.my_url(global_network_nodes[global_network_node]):
+            local_node.network_nodes[global_network_node] = global_network_nodes[global_network_node]
+    return "local network nodes updated", 200
 
 
 @app.route("/add_utxn", methods=["POST"])
@@ -66,6 +68,12 @@ def check_network_blockchains():
     biggest_chain = local_node.compare_chains()
     result = {"chain": biggest_chain.chain, "length": len(biggest_chain.chain)}
     return result, 200
+
+
+@app.before_first_request
+def before_first_request_func():
+    x = threading.Thread(target=mine)
+    x.start()
 
 
 if __name__ == '__main__':

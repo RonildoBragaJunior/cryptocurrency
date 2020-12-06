@@ -1,5 +1,6 @@
 from datetime import datetime
 from hashlib import sha256
+import json
 
 
 class Transaction:
@@ -16,6 +17,11 @@ class Transaction:
     def create_hash(self):
         self.txn_hash = sha256(str(self.__dict__).encode()).hexdigest()
         return self
+
+    def to_bytes(self):
+        message = json.dumps(self.__dict__)
+        b_message = bytes(message, 'utf-8')
+        return b_message
 
 
 class Block:
