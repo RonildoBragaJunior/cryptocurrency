@@ -24,6 +24,7 @@ def register():
     requests.post(tools.lighthouse + "add_node",
                   data=json.dumps(data),
                   headers=tools.HEADERS)
+    return "local network nodes updated", 200
 
 
 @app.route("/update_network", methods=["GET"])
@@ -36,12 +37,17 @@ def update_network():
     return "local network nodes updated", 200
 
 
+@app.route("/get_network", methods=["GET"])
+def get_network():
+    data = jsonify(local_node.network_nodes)
+    return data, 200
+
+
 @app.route("/add_utxn", methods=["POST"])
 def add_utxn():
     data = request.get_json()
     transaction = Transaction(**data)
-
-    local_node.add_utxn(transaction)
+    local_node.utxns.append(transaction)
     return "transaction received", 200
 
 
@@ -57,8 +63,8 @@ def mine_utxns():
     return "New block mined", 200
 
 
-@app.route("/get_blockchain", methods=["GET"])
-def get_blockchain():
+@app.route("/blockchain", methods=["GET"])
+def blockchain():
     chain = jsonify(local_node.blockchain.to_json())
     return chain, 200
 

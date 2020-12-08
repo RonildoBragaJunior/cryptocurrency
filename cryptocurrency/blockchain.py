@@ -23,22 +23,33 @@ class Transaction:
         b_message = bytes(message, 'utf-8')
         return b_message
 
+    def to_json(self):
+        return{
+            "txn_hash": self.txn_hash,
+            "prev_hash": self.prev_hash,
+            "address": self.address,
+            "amount": self.amount,
+            "fee": self.fee,
+            "txn_time": self.txn_time,
+            "signature": self.signature
+        }
+
 
 class Block:
 
-    def __init__(self, prev_hash, transactions=[], difficulty=4, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
-        self.difficulty = difficulty
-        self.proof = 0
-        self.hash = None
+    def __init__(self, hash=None, prev_hash=None, difficulty=6, proof=0, txns=[], timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+        self.hash = hash
         self.prev_hash = prev_hash
+        self.difficulty = difficulty
+        self.proof = proof
         self.timestamp = str(timestamp)
-        self.transactions = transactions
+        self.txns = txns
 
     def create_hash(self):
         block_string = str({
             "proof": self.proof,
             "timestamp": self.timestamp,
-            "transactions": self.transactions
+            "transactions": self.txns
         })
         return sha256(block_string.encode()).hexdigest()
 
@@ -55,7 +66,7 @@ class Block:
             "hash": self.hash,
             "prev_hash": self.prev_hash,
             "timestamp": self.timestamp,
-            "transactions": self.transactions
+            "txns": [txn.to_json() for txn in self.txns]
         }
 
 

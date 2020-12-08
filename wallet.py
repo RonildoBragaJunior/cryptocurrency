@@ -17,6 +17,7 @@ def register():
     requests.post(tools.lighthouse + "add_wallet",
                   data=json.dumps(local_address),
                   headers=tools.HEADERS)
+    return "ok", 200
 
 
 @app.route("/add_utxn", methods=["POST"])
